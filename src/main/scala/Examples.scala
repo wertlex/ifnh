@@ -1,7 +1,7 @@
 package com.github.wertlex
 
 import java.util.Date
-import play.api.libs.iteratee.{Iteratee, Input, Enumerator}
+import play.api.libs.iteratee._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -33,11 +33,8 @@ object Examples {
     def step(item: Int) = total += item
 
     l foreach step
-
     total = 0
-
     l2 foreach step
-
     total
   }
 
@@ -63,7 +60,8 @@ object Examples {
     val integerEnumerator:  Enumerator[Int]     = Enumerator(1, 2, 3, 4)
     val doubleEnumerator:   Enumerator[Double]  = Enumerator(1.0, 2.0, 3.0, 4.0)
 
-    val fileEnumerator:     Enumerator[Array[Byte]] = Enumerator.fromFile(new java.io.File("myfile.txt"))
+    /** Requires file */
+//    val fileEnumerator:     Enumerator[Array[Byte]] = Enumerator.fromFile(new java.io.File("myfile.txt"))
 
     val dateGenerator: Enumerator[String] = Enumerator.generateM {
       Future{
@@ -71,6 +69,7 @@ object Examples {
         Some("current time %s".format(new Date()))
       }
     }
+
   }
 
   def code6() = {
@@ -93,4 +92,39 @@ object Examples {
     val r4 = e2.run(iterator)
   }
 
+  def code8(): Future[Int] = {
+    val iterator: Iteratee[Int, Int] = Iteratee.fold(0){ (total, elt) => total + elt }
+    val e: Enumerator[Int] = Enumerator(1, 2, 3, 4)
+    e.run(iterator)
+  }
+
+  def code9() = {
+    val e = Enumerator(1, 2, 3, 4)
+    e(Iteratee.foreach( println _))
+  }
+
+  def code10(): Future[List[Int]] = {
+    val e = Enumerator(1, 2, 3, 4)
+    val list: Future[List[Int]] = e run Iteratee.getChunks[Int]
+    list
+  }
+
+  def code11(): Future[Int] = {
+    def total2Chunks: Iteratee[Int, Int] = {
+      def step(idx: Int, total: Int)(i: Input[Int]): Iteratee[Int, Int] = i match {
+        case Input.EOF | Input.Empty => Done(total, Input.EOF)
+        case Input.El(e)  =>
+          if(idx < 2) Cont[Int, Int](i => step(idx + 1, total + e)(i))
+          else Done(total, Input.EOF)
+      }
+      Cont[Int, Int](i => step(0, 0)(i))
+    }
+
+    val e = Enumerator(1, 2, 3)
+    e run total2Chunks
+  }
+
+  def code12() = {
+    
+  }
 }
