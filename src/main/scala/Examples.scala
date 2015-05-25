@@ -125,6 +125,39 @@ object Examples {
   }
 
   def code12() = {
-    
+    val e: Enumerator[Int]            = Enumerator(1, 2, 3, 4)
+    val i: Iteratee[Int, Int]         = Iteratee.fold(0){ (total, elt) => total + elt}
+    val p: Future[Iteratee[Int, Int]] = e.apply(i)
+
+    val it = Iteratee.flatten(p)
+
+    val p1: Future[Iteratee[Int, Int]] = Future(i)
+    val p2: Future[Iteratee[Int, Int]] = i.unflatten.map(_.it)
+
+  }
+
+  def code13() = {
+    val enumerator = Enumerator(1, 2, 3, 4)
+    val iteratee: Iteratee[String, List[String]] = Iteratee.getChunks[String]
+    val list: Future[List[String]] = enumerator through Enumeratee.map(_.toString) run iteratee
+  }
+
+  def code14() = {
+    val enumerator =  Enumerator(1, 2, 3, 4)
+    val stringEnumerator: Enumerator[String] = enumerator through Enumeratee.map(_.toString)
+  }
+
+  def code15() = {
+    val stringIteratee: Iteratee[String, List[String]] = Iteratee.getChunks[String]
+
+    val enumeratee: Enumeratee[Int, String] = Enumeratee.map[Int].apply[String](_.toString)
+    val intIteratee = enumeratee.transform(stringIteratee)
+  }
+
+  def code16() = {
+    case class Id(id: String)
+    val enumeratee1: Enumeratee[Int, String]  = Enumeratee.map(_.toString)
+    val enumeratee2: Enumeratee[String, Id]   = Enumeratee.map(s => Id(s))
+    val enumeratee3: Enumeratee[Int, Id]      = enumeratee1 compose enumeratee2
   }
 }

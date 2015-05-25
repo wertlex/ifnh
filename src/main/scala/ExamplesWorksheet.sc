@@ -13,6 +13,11 @@ Await.result(Examples.code8(), 10 seconds)
 Examples.code9()
 Examples.code10()
 Await.result(Examples.code11, 10 seconds)
+Examples.code12()
+Examples.code13()
+Examples.code14()
+Examples.code15()
+Examples.code16()
 
 
 
